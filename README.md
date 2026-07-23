@@ -1,4 +1,4 @@
-<img width="1345" height="642" alt="image" src="https://github.com/user-attachments/assets/51242b3f-4dfc-48ab-b8a6-1a02d47941fa" /># Learning Management System
+<img width="1345" height="642" alt="image" src="https://github.com/user-attachments/assets/51242b3f-4dfc-48ab-b8a6-1a02d47941fa" />## Learning Management System
 
 A modern Learning Management System (LMS) built with **React, Django, FastAPI, and MongoDB**, featuring role-based learning, AI-powered quiz generation, integrated payments, and a scalable microservices architecture.
 
