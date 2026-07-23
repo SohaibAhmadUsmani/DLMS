@@ -7,7 +7,7 @@ import {
   GraduationCap,
 } from 'lucide-react'
 
-import heroImg from '../../assets/orange.png'
+import heroImg from '../../assets/Orange.png'
 import aboutImg from '../../assets/about-1.jpg'
 import gettyImg from '../../assets/gettyimages-1413873774-612x612.jpg'
 import instructorImg from '../../assets/instructor.webp'
