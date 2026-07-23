@@ -1,0 +1,37 @@
+# ── Python / Backend ──
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+env/
+backend/.env
+*.egg
+*.sqlite3
+.coverage
+backend/uploads/
+
+# ── Node / Frontend ──
+node_modules/
+frontend/dist/
+frontend/.env
+
+# ── Logs ──
+*.log
+vite.log
+uvicorn.log
+npm_install.log
+
+# ── Project-specific ──
+memory.md
+dlms-homepage-prompt.md
+
+# ── OS files ──
+.DS_Store
+Thumbs.db
+
+# ── IDE / Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

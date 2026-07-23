@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #4F46E5;
+  --color-accent: #F5A623;
+  --color-success: #14B8A6;
+  --color-danger: #EF4444;
+  --color-surface: #F8FAFC;
+  --color-textPrimary: #1E293B;
+  --color-textMuted: #64748B;
+
+  --color-brand-pink: #f43f6a;
+  --color-brand-purple: #2e1a63;
+  --color-brand-yellow: #ffc72c;
+  --color-border-default: #191919;
+  --color-text-secondary: #6d6d6d;
+  --color-text-tertiary: #ffffff;
+  --color-surface-base: #000000;
+  --color-surface-muted: #e7e7e7;
+  --color-surface-strong: #f8f8f8;
+
+  --font-family-sans: Inter, system-ui, sans-serif;
+
+  --radius-card: 12px;
+  --radius-btn: 8px;
+  --radius-xs: 4px;
+  --radius-sm: 24px;
+  --radius-md: 30px;
+  --radius-lg: 50px;
+  --radius-xl: 55px;
+}
+
+:root {
+  --space-1: 4px;  --space-2: 5px;  --space-3: 7px;  --space-4: 8px;
+  --space-5: 10px; --space-6: 15px; --space-7: 16px; --space-8: 20px;
+  --shadow-1: rgba(219, 219, 219, 0.25) 0px 4px 14px 0px;
+  --motion-duration-instant: 500ms;
+  --motion-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --font-size-hero: 48px;
+  --font-size-xs: 10px;
+  --font-size-sm: 10.4px;
+  --font-size-md: 12px;
+  --font-size-lg: 14px;
+  --font-size-xl: 15px;
+  --font-size-2xl: 16px;
+  --font-size-3xl: 18px;
+  --font-size-4xl: 20px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
