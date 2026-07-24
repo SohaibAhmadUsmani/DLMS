@@ -6,20 +6,22 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 import django
 django.setup()
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.types import ASGIApp, Scope, Receive, Send
 from fastapi_service.main import app as fastapi_app
 
-main_app = FastAPI(title="DLMS API Gateway")
 
-main_app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+class StripPrefixMiddleware:
+    def __init__(self, app: ASGIApp, prefix: str):
+        self.app = app
+        self.prefix = prefix
 
-main_app.mount("/api/v1/core", fastapi_app)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] == "http" and scope["path"].startswith(self.prefix):
+            scope["path"] = scope["path"][len(self.prefix):]
+            scope["raw_path"] = scope["path"].encode()
+        await self.app(scope, receive, send)
 
-app = main_app
+
+app = StripPrefixMiddleware(fastapi_app, "/api/v1/core")
+app = CORSMiddleware(app, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
