@@ -4,7 +4,6 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi_service.core.database import get_database
 from fastapi_service.core.exceptions import NotFoundError
 from fastapi_service.core.security import get_current_user, require_role
-from shared.internal_client import call_console, InternalCallError
 
 router = APIRouter(tags=["courses"])
 
@@ -14,18 +13,16 @@ async def get_enriched_courses(
     payload: dict = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
-    from datetime import timedelta
-    from shared.security import create_access_token
+    role = payload.get("role")
+    user_id = payload["sub"]
 
-    fake_token = create_access_token(payload["sub"], payload.get("role", "student"), timedelta(minutes=5))
+    query = {}
+    if role == "teacher":
+        query["teacher_id"] = user_id
+    elif role == "student":
+        query["is_published"] = True
 
-    try:
-        courses = await call_console("GET", "/api/v1/console/courses/", headers={
-            "Authorization": f"Bearer {fake_token}"
-        })
-    except InternalCallError:
-        raise
-
+    courses = await db["courses"].find(query).sort("created_at", -1).to_list(length=None)
     if not courses:
         return {"courses": []}
 
@@ -46,8 +43,9 @@ async def get_enriched_courses(
 
     result = []
     for c in courses:
+        sections_count = await db["sections"].count_documents({"course_id": str(c["_id"])})
         result.append({
-            "id": c.get("id"),
+            "id": str(c["_id"]),
             "title": c.get("title", ""),
             "description": c.get("description", ""),
             "teacher_id": c.get("teacher_id"),
@@ -59,7 +57,7 @@ async def get_enriched_courses(
             "requirements": c.get("requirements", []),
             "total_duration": c.get("total_duration", "0"),
             "difficulty_level": c.get("difficulty_level", "beginner"),
-            "sections_count": c.get("sections_count", 0),
+            "sections_count": sections_count,
             "created_at": c.get("created_at"),
             "price": c.get("price", 0),
         })
@@ -73,19 +71,12 @@ async def get_course_detail(
     payload: dict = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
-    from datetime import timedelta
-    from shared.security import create_access_token
-
-    fake_token = create_access_token(payload["sub"], payload.get("role", "student"), timedelta(minutes=5))
-
     try:
-        course = await call_console("GET", f"/api/v1/console/courses/{course_id}/", headers={
-            "Authorization": f"Bearer {fake_token}"
-        })
-    except InternalCallError:
-        raise
+        course = await db["courses"].find_one({"_id": ObjectId(course_id)})
+    except Exception:
+        raise NotFoundError("Course not found")
 
-    if "detail" in course and course.get("detail") == "Not found.":
+    if not course:
         raise NotFoundError("Course not found")
 
     teacher = None
@@ -102,9 +93,9 @@ async def get_course_detail(
     except Exception:
         pass
 
-    sections = course.get("sections", [])
+    sections = await db["sections"].find({"course_id": course_id}).sort("order", 1).to_list(length=None)
 
-    section_ids = [s.get("id") for s in sections if s.get("id")]
+    section_ids = [str(s["_id"]) for s in sections]
     materials_map = {}
     if section_ids:
         mat_cursor = db["materials"].find({"section_id": {"$in": section_ids}})
@@ -122,7 +113,7 @@ async def get_course_detail(
 
     sections_with_materials = []
     for s in sections:
-        sid = s.get("id")
+        sid = str(s["_id"])
         sections_with_materials.append({
             "id": sid,
             "title": s.get("title", ""),
@@ -152,7 +143,7 @@ async def get_course_detail(
         progress = enrollment.get("progress", 0)
 
     return {
-        "id": course.get("id"),
+        "id": str(course["_id"]),
         "title": course.get("title", ""),
         "description": course.get("description", ""),
         "teacher_id": course.get("teacher_id"),
@@ -184,11 +175,8 @@ async def get_course_students(
 ):
     role = payload.get("role")
     if role == "teacher":
-        try:
-            course = await call_console("GET", f"/api/v1/console/internal/courses/{course_id}/")
-        except InternalCallError:
-            raise
-        if not course.get("exists"):
+        course = await db["courses"].find_one({"_id": ObjectId(course_id)})
+        if not course:
             raise NotFoundError("Course not found")
         if course.get("teacher_id") != payload["sub"] and role != "admin":
             from fastapi_service.core.exceptions import ForbiddenError
