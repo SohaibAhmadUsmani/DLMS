@@ -1,5 +1,5 @@
 from bson import ObjectId
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi_service.core.database import get_database
 from fastapi_service.core.exceptions import NotFoundError
@@ -8,8 +8,16 @@ from fastapi_service.core.security import get_current_user, require_role
 router = APIRouter(tags=["courses"])
 
 
+def full_url(request: Request, path: str) -> str:
+    if not path or path.startswith("http"):
+        return path
+    base = str(request.base_url).rstrip("/")
+    return base + path
+
+
 @router.get("/courses/enriched")
 async def get_enriched_courses(
+    request: Request,
     payload: dict = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database),
 ):
@@ -52,7 +60,7 @@ async def get_enriched_courses(
             "teacher_name": teacher_map.get(c.get("teacher_id"), "Unknown"),
             "credit_hours": c.get("credit_hours", 3),
             "is_published": c.get("is_published", False),
-            "cover_image": c.get("cover_image", ""),
+            "cover_image": full_url(request, c.get("cover_image", "")),
             "what_you_will_learn": c.get("what_you_will_learn", []),
             "requirements": c.get("requirements", []),
             "total_duration": c.get("total_duration", "0"),
@@ -67,6 +75,7 @@ async def get_enriched_courses(
 
 @router.get("/courses/{course_id}/detail")
 async def get_course_detail(
+    request: Request,
     course_id: str,
     payload: dict = Depends(get_current_user),
     db: AsyncIOMotorDatabase = Depends(get_database),
@@ -87,7 +96,7 @@ async def get_course_detail(
                 "id": str(tuser["_id"]),
                 "name": tuser.get("name", "Unknown"),
                 "email": tuser.get("email", ""),
-                "profile_picture_url": tuser.get("profile_picture_url", ""),
+                "profile_picture_url": full_url(request, tuser.get("profile_picture_url", "")),
                 "bio": tuser.get("bio", ""),
             }
     except Exception:
@@ -106,7 +115,7 @@ async def get_course_detail(
             materials_map[sid].append({
                 "id": str(m["_id"]),
                 "title": m.get("title", m.get("filename", "Material")),
-                "file_url": m.get("file_url", ""),
+                "file_url": full_url(request, m.get("file_url", "")),
                 "file_type": m.get("file_type", ""),
                 "content": m.get("content", ""),
             })
@@ -149,7 +158,7 @@ async def get_course_detail(
         "teacher_id": course.get("teacher_id"),
         "credit_hours": course.get("credit_hours", 3),
         "is_published": course.get("is_published", False),
-        "cover_image": course.get("cover_image", ""),
+        "cover_image": full_url(request, course.get("cover_image", "")),
         "what_you_will_learn": course.get("what_you_will_learn", []),
         "requirements": course.get("requirements", []),
         "total_duration": course.get("total_duration", "0"),
