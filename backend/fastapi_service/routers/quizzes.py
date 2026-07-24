@@ -29,6 +29,7 @@ from fastapi_service.models.quiz_schemas import (
     QuizResponse,
     QuizResultsResponse,
     QuizSubmitResponse,
+    QuizUpdate,
     StudentQuizResponse,
     AIGenerateResponse,
 )
