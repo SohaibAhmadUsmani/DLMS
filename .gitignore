@@ -8,8 +8,7 @@ backend/.env
 *.egg
 *.sqlite3
 .coverage
-backend/uploads/*
-!backend/uploads/.gitkeep
+backend/uploads/.gitkeep
 
 # ── Node / Frontend ──
 node_modules/
